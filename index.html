@@ -96,4 +96,377 @@
       margin: 12px 0;
     }
     .grid-item {
-      position:
+      position: relative;
+      background: #0f172a;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid #334155;
+    }
+    .grid-item img {
+      width: 100%;
+      height: 110px;
+      object-fit: cover;
+      display: block;
+    }
+    .grid-label {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      background: rgba(15, 23, 42, 0.85);
+      color: var(--accent-blue);
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+
+    .feedback {
+      min-height: 2rem;
+      color: var(--accent-pink);
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    /* 文學扉頁 */
+    .poem-box {
+      font-size: 1.3rem;
+      line-height: 1.8;
+      letter-spacing: 2px;
+      color: var(--accent-blue);
+      margin: 20px 0;
+    }
+
+    /* DC 閃爍彈窗 */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+    .modal-content {
+      background: var(--card-bg);
+      padding: 2rem;
+      border-radius: 16px;
+      border: 2px solid var(--accent-blue);
+      text-align: center;
+      max-width: 360px;
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    @keyframes flashAnim {
+      0% { background-color: #fff; }
+      50% { background-color: #f472b6; }
+      100% { background-color: var(--bg-color); }
+    }
+    .flash { animation: flashAnim 0.4s ease; }
+  </style>
+</head>
+<body id="mainBody">
+
+  <div class="container">
+    
+    <div id="stage0">
+      <h2>MEMORY VAULT // 進入座標</h2>
+      <p>請選擇你目前的時空狀態：</p>
+      <button class="btn" id="within3Btn" onclick="clickWithin3()">【 三年內 】</button>
+      <button class="btn" onclick="selectTimeMode('after3')">【 三年後 】</button>
+      <div id="modeFeedback" class="feedback"></div>
+    </div>
+
+    <div id="stage1" class="hidden">
+      <h3>⌛ 時空傳輸與資料解封中...</h3>
+      <div class="timer-display" id="timer">00:03</div>
+      <p id="timerSubtext">正在連結回憶記憶庫...</p>
+    </div>
+
+    <div id="stage2" class="hidden">
+      <h3 id="quizTitle">問答關卡</h3>
+      <div id="quizContent"></div>
+      <div class="feedback" id="quizFeedback"></div>
+    </div>
+
+    <div id="stage3" class="hidden">
+      <h3>🔑 終極金鑰解密</h3>
+      <p id="passcodePrompt">請輸入你實體卡片上的謎題解答：</p>
+      <input type="text" id="finalPasscode" placeholder="請輸入解答..." autocomplete="off">
+      <button class="btn btn-accent" id="verifyBtn" onclick="verifyFinalPasscode()">驗證解密</button>
+      <div class="feedback" id="finalFeedback"></div>
+    </div>
+
+    <div id="stage4" class="hidden">
+      <h3>✨ 歸隊解鎖成功 ✨</h3>
+      <div class="poem-box" id="poemDisplay"></div>
+
+      <hr style="border-color: #334155; margin: 20px 0;">
+
+      <h4>📜 時光膠囊登錄</h4>
+      <input type="text" id="nicknameInput" placeholder="請輸入你的暱稱/代號">
+      <textarea id="capsuleInput" rows="3" placeholder="寫下一段話給後面解鎖的人..."></textarea>
+      <button class="btn btn-accent" onclick="submitCapsule()">封存留言並送出</button>
+    </div>
+
+  </div>
+
+  <div id="dcModal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <h2 style="color: var(--accent-pink);">⚡ ACCESS GRANTED</h2>
+      <p>恭喜歸隊！點擊下方按鈕加入專屬討論區，看看大家都在裡面吐槽什麼：</p>
+      <a href="https://discord.gg/x3H7e6mD2" target="_blank" style="text-decoration: none;">
+        <button class="btn btn-accent" style="margin-top: 15px;">👾 進入 Discord 秘密頻道</button>
+      </a>
+    </div>
+  </div>
+
+  <script>
+    // --- 密碼與詩句庫 ---
+    const VAULT_KEYS = {
+      gate_01: { id: "1", keys: ["16", "卡片1", "第一張", "1"], poem: "「願你如高天之上的候鳥，與光同在。」" },
+      gate_02: { id: "2", keys: ["算錯的時候", "算錯", "卡片2", "第二張", "2"], poem: "「願你如暴雪後的寒梅，終得陽光。」" },
+      gate_03: { id: "3", keys: ["我也不記得", "不記得", "數不勝數", "太多了", "卡片3", "第三張", "3"], poem: "「願你如你的故事，精彩繽紛。」" },
+      gate_04: { id: "4", keys: ["把我的心勾走了", "心勾走了", "其他人不好說", "卡片4", "第四張", "4"], poem: "「願你如長途漂泊的旅客，帶著豐富的見聞與我們相會。」" }
+    };
+
+    // --- 圖片放置檔名，直接載入你傳的檔名 ---
+    const IMG_A = "2018071274216625.jpg";
+    const IMG_B = "images.jpeg";
+    const IMG_C = "22_工作區域-1-複本-2.jpg";
+    const IMG_D = "F5T0WD-bwAAhhQW.jpg";
+
+    // --- STAGE 0: 時間選擇 ---
+    let within3Clicks = 0;
+    function clickWithin3() {
+      within3Clicks++;
+      const btn = document.getElementById('within3Btn');
+      const fb = document.getElementById('modeFeedback');
+
+      if (within3Clicks === 1) {
+        btn.classList.add('drop-stage-1');
+        fb.innerText = "按鈕好像鬆動了...才過多久就忍不住點進來？🫵";
+      } else if (within3Clicks === 2) {
+        btn.classList.remove('drop-stage-1');
+        btn.classList.add('drop-stage-2');
+        fb.innerText = "再點要掉下去了喔！是有多迫不及待啦！(⁠・⁠∀⁠・⁠)";
+      } else if (within3Clicks >= 3) {
+        btn.classList.remove('drop-stage-2');
+        btn.classList.add('drop-stage-3');
+        fb.innerText = "散了散了！按鈕壞掉了，直接進入系統啦！💥";
+        setTimeout(() => {
+          document.getElementById('stage0').classList.add('hidden');
+          document.getElementById('stage1').classList.remove('hidden');
+          startCountdown();
+        }, 1200);
+      }
+    }
+
+    function selectTimeMode(mode) {
+      const fb = document.getElementById('modeFeedback');
+      fb.innerText = "暴力破解是不是？少那邊裝老，時間根本還沒到好嗎！(⁠・⁠∀⁠・⁠)";
+      setTimeout(() => {
+        document.getElementById('stage0').classList.add('hidden');
+        document.getElementById('stage1').classList.remove('hidden');
+        startCountdown();
+      }, 1800);
+    }
+
+    // --- STAGE 1: 倒數計時 ---
+    function startCountdown() {
+      let sec = 3;
+      const timerEl = document.getElementById('timer');
+      const interval = setInterval(() => {
+        sec--;
+        timerEl.innerText = `00:0${sec}`;
+        if(sec <= 0) {
+          clearInterval(interval);
+          document.getElementById('stage1').classList.add('hidden');
+          document.getElementById('stage2').classList.remove('hidden');
+          loadQuiz(0);
+        }
+      }, 1000);
+    }
+
+    // --- STAGE 2: 惡搞問答邏輯 ---
+    let currentQuizIndex = 0;
+    let quizFailCount = 0;
+
+    const QUIZ_DATA = [
+      {
+        title: "Q1: 請問班導以前的綽號是什麼？",
+        hasGrid: false,
+        options: [
+          { text: "A. 香蕉哥哥", msg: "香蕉哥哥？！你把班導當兒童台主持人喔！🫵", correct: false },
+          { text: "B. 青蛙", msg: "答對了！恭喜記得班導的青蛙黑歷史！", correct: true },
+          { text: "C. 兄弟你好香啊", msg: "不要把你的男同迷因套在班導身上好嗎！(⁠・⁠∀⁠・⁠)", correct: false },
+          { text: "D. jojo 我不當人了！", msg: "班導戴了石鬼面是不是？JOJO 梗看太多了啦！", correct: false }
+        ]
+      },
+      {
+        title: "Q2: 請問照片中哪一個才是瘦辰？",
+        hasGrid: true,
+        options: [
+          { text: "A. 圖 A 的潮男", msg: "雖然很帥但這不是瘦辰好嗎！🫵", correct: false },
+          { text: "B. 圖 B 的水墨人物", msg: "那是古代文人，不是瘦辰好嗎！(⁠・⁠∀⁠・⁠)", correct: false },
+          { text: "C. 圖 C 的美味炸雞", msg: "雖然炸雞很香，但這是食物啊！", correct: tute },
+          { text: "D. 圖 D 的「窩不知道」貓貓", msg: "隨便選一個也好吧！", correct: false }
+        ]
+      },
+      {
+        title: "Q3: 請問「我是誰」？",
+        hasGrid: false,
+        options: [
+          { text: "A. 變態", msg: "才不是！你才變態！🫵", correct: false },
+          { text: "B. 大變態", msg: "越說越過份了是不是！(⁠・⁠∀⁠・⁠)", correct: false },
+          { text: "C. 超級大變態", msg: "直接開大招攻擊我是怎樣啦！", correct: false },
+          { text: "D. 以上皆是", msg: "想一網打盡？門都沒有！", correct: false }
+        ]
+      }
+    ];
+
+    function loadQuiz(index) {
+      currentQuizIndex = index;
+      quizFailCount = 0;
+      const q = QUIZ_DATA[index];
+      const fb = document.getElementById('quizFeedback');
+      fb.innerText = "";
+
+      let html = `<h4>${q.title}</h4>`;
+      
+      if(q.hasGrid) {
+        html += `
+          <div class="quiz-grid">
+            <div class="grid-item"><span class="grid-label">A</span><img src="${IMG_A}" alt="A" onerror="this.src='https://via.placeholder.com/150?text=圖A'"></div>
+            <div class="grid-item"><span class="grid-label">B</span><img src="${IMG_B}" alt="B" onerror="this.src='https://via.placeholder.com/150?text=圖B'"></div>
+            <div class="grid-item"><span class="grid-label">C</span><img src="${IMG_C}" alt="C" onerror="this.src='https://via.placeholder.com/150?text=圖C'"></div>
+            <div class="grid-item"><span class="grid-label">D</span><img src="${IMG_D}" alt="D" onerror="this.src='https://via.placeholder.com/150?text=圖D'"></div>
+          </div>
+        `;
+      }
+      
+      q.options.forEach((opt, optIdx) => {
+        html += `<button class="btn" onclick="answerQuiz(${optIdx})">${opt.text}</button>`;
+      });
+
+      document.getElementById('quizContent').innerHTML = html;
+    }
+
+    function answerQuiz(optIdx) {
+      const q = QUIZ_DATA[currentQuizIndex];
+      const selected = q.options[optIdx];
+      const fb = document.getElementById('quizFeedback');
+
+      if(currentQuizIndex === 2) {
+        quizFailCount++;
+        if(quizFailCount >= 3) {
+          fb.style.color = "#f472b6";
+          fb.innerText = "欸不是你禮貌嗎 😡？！算了不跟你計較，直接進下一關啦！";
+          setTimeout(() => {
+            document.getElementById('stage2').classList.add('hidden');
+            document.getElementById('stage3').classList.remove('hidden');
+          }, 2000);
+        } else {
+          fb.innerText = selected.msg;
+        }
+        return;
+      }
+
+      if(selected.correct) {
+        fb.style.color = "#38bdf8";
+        fb.innerText = selected.msg;
+        setTimeout(() => {
+          if(currentQuizIndex + 1 < QUIZ_DATA.length) {
+            loadQuiz(currentQuizIndex + 1);
+          } else {
+            document.getElementById('stage2').classList.add('hidden');
+            document.getElementById('stage3').classList.remove('hidden');
+          }
+        }, 1200);
+      } else {
+        fb.style.color = "#f87171";
+        fb.innerText = selected.msg;
+      }
+    }
+
+    // --- STAGE 3: 實體密碼驗證 ---
+    let finalFailCount = 0;
+    let isRescueMode = false;
+
+    function verifyFinalPasscode() {
+      const inputEl = document.getElementById('finalPasscode');
+      const val = inputEl.value.trim().toLowerCase();
+      const fb = document.getElementById('finalFeedback');
+
+      if (isRescueMode) {
+        let matchedPoem = null;
+        for(let key in VAULT_KEYS) {
+          if(VAULT_KEYS[key].keys.some(k => val.includes(k.toLowerCase())) || val.includes(VAULT_KEYS[key].id)) {
+            matchedPoem = VAULT_KEYS[key].poem;
+            break;
+          }
+        }
+
+        if(matchedPoem) {
+          fb.style.color = "#38bdf8";
+          fb.innerText = "辨識成功！正在為你檢索專屬記憶與寄語...";
+          setTimeout(() => unlockVault(matchedPoem), 1500);
+        } else {
+          fb.innerText = "無法辨識卡片！請輸入卡片編號（1、2、3、4）或題目關鍵字！";
+        }
+        return;
+      }
+
+      let matched = null;
+      for(let key in VAULT_KEYS) {
+        if(VAULT_KEYS[key].keys.some(k => val.includes(k.toLowerCase()))) {
+          matched = VAULT_KEYS[key];
+          break;
+        }
+      }
+
+      if(matched) {
+        unlockVault(matched.poem);
+      } else {
+        finalFailCount++;
+        if(finalFailCount < 3) {
+          fb.innerText = "解答錯誤！算什麼算！答案根本不在公式裡！";
+        } else {
+          isRescueMode = true;
+          fb.style.color = "#38bdf8";
+          fb.innerHTML = "🚨 <strong>智商救濟機制啟動！</strong><br>算了一看就知道你沒算出來！<br>請在上方輸入框輸入<strong>「你的卡片編號 (1~4)」</strong>或<strong>「題目第一句/關鍵字」</strong>領取專屬寄語：";
+          document.getElementById('passcodePrompt').innerText = "請輸入你的卡片編號 (1-4) 或題目關鍵字：";
+          inputEl.value = "";
+          inputEl.placeholder = "例如：1 或 算錯的時候...";
+          document.getElementById('verifyBtn').innerText = "領取專屬寄語";
+        }
+      }
+    }
+
+    function unlockVault(poemText) {
+      document.getElementById('stage3').classList.add('hidden');
+      document.getElementById('stage4').classList.remove('hidden');
+      document.getElementById('poemDisplay').innerText = poemText;
+    }
+
+    // --- STAGE 4: 膠囊送出與 DC 閃爍彈窗 ---
+    function submitCapsule() {
+      const name = document.getElementById('nicknameInput').value.trim();
+      const msg = document.getElementById('capsuleInput').value.trim();
+
+      if(!name || !msg) {
+        alert("請輸入暱稱與留言再送出喔！");
+        return;
+      }
+
+      document.getElementById('mainBody').classList.add('flash');
+      setTimeout(() => {
+        document.getElementById('mainBody').classList.remove('flash');
+        document.getElementById('dcModal').classList.remove('hidden');
+      }, 400);
+    }
+  </script>
+</body>
+</html>
