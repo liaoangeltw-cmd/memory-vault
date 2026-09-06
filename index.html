@@ -176,9 +176,9 @@
     <!-- STAGE 3: 實體卡片終極密碼 -->
     <div id="stage3" class="hidden">
       <h3>🔑 終極金鑰解密</h3>
-      <p>請輸入你實體卡片上的謎題解答：</p>
+      <p id="passcodePrompt">請輸入你實體卡片上的謎題解答：</p>
       <input type="text" id="finalPasscode" placeholder="請輸入解答..." autocomplete="off">
-      <button class="btn btn-accent" onclick="verifyFinalPasscode()">驗證解密</button>
+      <button class="btn btn-accent" id="verifyBtn" onclick="verifyFinalPasscode()">驗證解密</button>
       <div class="feedback" id="finalFeedback"></div>
     </div>
 
@@ -209,15 +209,31 @@
   </div>
 
   <script>
-    // --- 密碼與詩句庫 ---
+    // --- 密碼與詩句庫（新增卡片號碼與卡片特徵識別） ---
     const VAULT_KEYS = {
-      gate_01: { keys: ["16"], poem: "「願你如高天之上的候鳥，與光同在。」" },
-      gate_02: { keys: ["算錯的時候", "算錯"], poem: "「願你如暴雪後的寒梅，終得陽光。」" },
-      gate_03: { keys: ["我也不記得", "不記得", "數不勝數", "太多了"], poem: "「願你如你的故事，精彩繽紛。」" },
-      gate_04: { keys: ["把我的心勾走了", "心勾走了", "其他人不好說"], poem: "「願你如長途漂泊的旅客，帶著豐富的見聞與我們相會。」" }
+      gate_01: { 
+        id: "1",
+        keys: ["16", "卡片1", "第一張", "1"], 
+        poem: "「願你如高天之上的候鳥，與光同在。」" 
+      },
+      gate_02: { 
+        id: "2",
+        keys: ["算錯的時候", "算錯", "卡片2", "第二張", "2"], 
+        poem: "「願你如暴雪後的寒梅，終得陽光。」" 
+      },
+      gate_03: { 
+        id: "3",
+        keys: ["我也不記得", "不記得", "數不勝數", "太多了", "卡片3", "第三張", "3"], 
+        poem: "「願你如你的故事，精彩繽紛。」" 
+      },
+      gate_04: { 
+        id: "4",
+        keys: ["把我的心勾走了", "心勾走了", "其他人不好說", "卡片4", "第四張", "4"], 
+        poem: "「願你如長途漂泊的旅客，帶著豐富的見聞與我們相會。」" 
+      }
     };
 
-    // --- STAGE 0: 時間選擇 (三年內點擊 3 次掉落效果) ---
+    // --- STAGE 0: 時間選擇 ---
     let within3Clicks = 0;
     function clickWithin3() {
       within3Clicks++;
@@ -269,12 +285,11 @@
       }, 1000);
     }
 
-    // --- STAGE 2: 惡搞問答邏輯 ---
+    // --- STAGE 2: 惡搞問答區 ---
     let currentQuizIndex = 0;
     let quizFailCount = 0;
 
     const QUIZ_DATA = [
-      // Q1: 班導綽號
       {
         title: "Q1: 請問班導以前的綽號是什麼？",
         img: null,
@@ -285,7 +300,6 @@
           { text: "D. jojo 我不當人了！", msg: "班導戴了石鬼面是不是？JOJO 梗看太多了啦！", correct: false }
         ]
       },
-      // Q2: 瘦辰辨識
       {
         title: "Q2: 請問照片中哪一個才是「瘦辰」？",
         img: "photo2.jpg",
@@ -296,7 +310,6 @@
           { text: "D. 都不是，這是新物種", msg: "雖然長得很抽象，但真的是瘦辰好嗎！", correct: false }
         ]
       },
-      // Q3: 我是誰 (全錯，不顯示任何次數提示，錯 3 次暴怒通關)
       {
         title: "Q3: 請問「我是誰」？",
         img: null,
@@ -331,7 +344,6 @@
       const selected = q.options[optIdx];
       const fb = document.getElementById('quizFeedback');
 
-      // 第三題特殊邏輯：全錯，不顯示任何次數，錯 3 次暴怒通關
       if(currentQuizIndex === 2) {
         quizFailCount++;
         if(quizFailCount >= 3) {
@@ -347,7 +359,6 @@
         return;
       }
 
-      // Q1, Q2 正常邏輯
       if(selected.correct) {
         fb.style.color = "#38bdf8";
         fb.innerText = selected.msg;
@@ -365,12 +376,38 @@
       }
     }
 
-    // --- STAGE 3: 實體密碼驗證 ---
+    // --- STAGE 3: 實體密碼驗證 (錯 3 次啟動題目判定救濟) ---
     let finalFailCount = 0;
+    let isRescueMode = false;
+
     function verifyFinalPasscode() {
-      const val = document.getElementById('finalPasscode').value.trim().toLowerCase();
+      const inputEl = document.getElementById('finalPasscode');
+      const val = inputEl.value.trim().toLowerCase();
       const fb = document.getElementById('finalFeedback');
 
+      // 如果已經在保底救援模式
+      if (isRescueMode) {
+        let matchedPoem = null;
+        
+        // 匹配卡片關鍵字或數字 (1~4)
+        for(let key in VAULT_KEYS) {
+          if(VAULT_KEYS[key].keys.some(k => val.includes(k.toLowerCase())) || val.includes(VAULT_KEYS[key].id)) {
+            matchedPoem = VAULT_KEYS[key].poem;
+            break;
+          }
+        }
+
+        if(matchedPoem) {
+          fb.style.color = "#38bdf8";
+          fb.innerText = "辨識成功！正在為你檢索專屬記憶與寄語...";
+          setTimeout(() => unlockVault(matchedPoem), 1500);
+        } else {
+          fb.innerText = "無法辨識卡片！請輸入卡片編號（1、2、3、4）或題目關鍵字！";
+        }
+        return;
+      }
+
+      // 一般對答案模式
       let matched = null;
       for(let key in VAULT_KEYS) {
         if(VAULT_KEYS[key].keys.some(k => val.includes(k.toLowerCase()))) {
@@ -386,11 +423,15 @@
         if(finalFailCount < 3) {
           fb.innerText = "解答錯誤！算什麼算！答案根本不在公式裡！";
         } else {
+          // 觸發拯救模式
+          isRescueMode = true;
           fb.style.color = "#38bdf8";
-          fb.innerHTML = "🚨 <strong>智商救濟機制啟動！</strong><br>算了看你可憐，答案是：<br><span style='color:#f472b6'>「其他人不好說，但你已經把我的心勾走了」</span><br>2 秒後自動為你解鎖...";
-          setTimeout(() => {
-            unlockVault(VAULT_KEYS.gate_04.poem);
-          }, 2500);
+          fb.innerHTML = "🚨 <strong>智商救濟機制啟動！</strong><br>算了一看就知道你沒算出來！<br>請在上方輸入框輸入<strong>「你的卡片編號 (1~4)」</strong>或<strong>「題目第一句/關鍵字」</strong>領取專屬寄語：";
+          
+          document.getElementById('passcodePrompt').innerText = "請輸入你的卡片編號 (1-4) 或題目關鍵字：";
+          inputEl.value = "";
+          inputEl.placeholder = "例如：1 或 算錯的時候...";
+          document.getElementById('verifyBtn').innerText = "領取專屬寄語";
         }
       }
     }
@@ -411,7 +452,6 @@
         return;
       }
 
-      // 觸發閃爍效果並彈出 DC 視窗
       document.getElementById('mainBody').classList.add('flash');
       setTimeout(() => {
         document.getElementById('mainBody').classList.remove('flash');
