@@ -41,6 +41,7 @@
 
     .hidden { display: none !important; }
 
+    /* 按鈕基礎樣式 */
     .btn {
       width: 100%;
       padding: 12px;
@@ -58,14 +59,20 @@
     .btn:hover { background: var(--accent-blue); color: #0f172a; }
     .btn-accent { background: var(--accent-blue); color: #0f172a; }
 
-    .drop-stage-1 { transform: translateY(15px) rotate(5deg) !important; }
-    .drop-stage-2 { transform: translateY(35px) rotate(-12deg) !important; }
+    /* 「三年內」按鈕掉落動畫階梯 */
+    .drop-stage-1 {
+      transform: translateY(15px) rotate(5deg) !important;
+    }
+    .drop-stage-2 {
+      transform: translateY(35px) rotate(-12deg) !important;
+    }
     .drop-stage-3 {
       transform: translateY(200px) rotate(45deg) !important;
       opacity: 0;
       pointer-events: none;
     }
 
+    /* 輸入框 */
     input[type="text"], textarea {
       width: 100%;
       padding: 12px;
@@ -77,6 +84,7 @@
       font-size: 1rem;
     }
 
+    /* 倒數計時 */
     .timer-display {
       font-size: 2rem;
       font-family: monospace;
@@ -84,35 +92,11 @@
       margin: 15px 0;
     }
 
-    .quiz-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin: 12px 0;
-    }
-    .grid-item {
-      position: relative;
-      background: #0f172a;
+    /* 圖片容器 */
+    .quiz-img {
+      max-width: 100%;
       border-radius: 8px;
-      overflow: hidden;
-      border: 2px solid #334155;
-    }
-    .grid-item img {
-      width: 100%;
-      height: 110px;
-      object-fit: cover;
-      display: block;
-    }
-    .grid-label {
-      position: absolute;
-      top: 4px;
-      left: 4px;
-      background: rgba(15, 23, 42, 0.85);
-      color: var(--accent-blue);
-      font-weight: bold;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 0.9rem;
+      margin-bottom: 12px;
     }
 
     .feedback {
@@ -122,6 +106,7 @@
       margin-top: 10px;
     }
 
+    /* 文學扉頁 */
     .poem-box {
       font-size: 1.3rem;
       line-height: 1.8;
@@ -130,6 +115,7 @@
       margin: 20px 0;
     }
 
+    /* DC 閃爍彈窗 */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -164,6 +150,7 @@
 
   <div class="container">
     
+    <!-- STAGE 0: 時間選擇入口 -->
     <div id="stage0">
       <h2>MEMORY VAULT // 進入座標</h2>
       <p>請選擇你目前的時空狀態：</p>
@@ -172,18 +159,21 @@
       <div id="modeFeedback" class="feedback"></div>
     </div>
 
+    <!-- STAGE 1: 時空倒數 -->
     <div id="stage1" class="hidden">
       <h3>⌛ 時空傳輸與資料解封中...</h3>
       <div class="timer-display" id="timer">00:03</div>
       <p id="timerSubtext">正在連結回憶記憶庫...</p>
     </div>
 
+    <!-- STAGE 2: 惡搞問答區 -->
     <div id="stage2" class="hidden">
       <h3 id="quizTitle">問答關卡</h3>
       <div id="quizContent"></div>
       <div class="feedback" id="quizFeedback"></div>
     </div>
 
+    <!-- STAGE 3: 實體卡片終極密碼 -->
     <div id="stage3" class="hidden">
       <h3>🔑 終極金鑰解密</h3>
       <p id="passcodePrompt">請輸入你實體卡片上的謎題解答：</p>
@@ -192,6 +182,7 @@
       <div class="feedback" id="finalFeedback"></div>
     </div>
 
+    <!-- STAGE 4: 排行榜登錄 & 文學扉頁 & 時光膠囊 -->
     <div id="stage4" class="hidden">
       <h3>✨ 歸隊解鎖成功 ✨</h3>
       <div class="poem-box" id="poemDisplay"></div>
@@ -206,6 +197,7 @@
 
   </div>
 
+  <!-- STAGE 5: 閃爍 DC 彈窗 -->
   <div id="dcModal" class="modal-overlay hidden">
     <div class="modal-content">
       <h2 style="color: var(--accent-pink);">⚡ ACCESS GRANTED</h2>
@@ -217,20 +209,31 @@
   </div>
 
   <script>
-    // 密碼庫
+    // --- 密碼與詩句庫（新增卡片號碼與卡片特徵識別） ---
     const VAULT_KEYS = {
-      gate_01: { id: "1", keys: ["16", "卡片1", "第一張", "1"], poem: "「願你如高天之上的候鳥，與光同在。」" },
-      gate_02: { id: "2", keys: ["算錯的時候", "算錯", "卡片2", "第二張", "2"], poem: "「願你如暴雪後的寒梅，終得陽光。」" },
-      gate_03: { id: "3", keys: ["我也不記得", "不記得", "數不勝數", "太多了", "卡片3", "第三張", "3"], poem: "「願你如你的故事，精彩繽紛。」" },
-      gate_04: { id: "4", keys: ["把我的心勾走了", "心勾走了", "其他人不好說", "卡片4", "第四張", "4"], poem: "「願你如長途漂泊的旅客，帶著豐富的見聞與我們相會。」" }
+      gate_01: { 
+        id: "1",
+        keys: ["16", "卡片1", "第一張", "1"], 
+        poem: "「願你如高天之上的候鳥，與光同在。」" 
+      },
+      gate_02: { 
+        id: "2",
+        keys: ["算錯的時候", "算錯", "卡片2", "第二張", "2"], 
+        poem: "「願你如暴雪後的寒梅，終得陽光。」" 
+      },
+      gate_03: { 
+        id: "3",
+        keys: ["我也不記得", "不記得", "數不勝數", "太多了", "卡片3", "第三張", "3"], 
+        poem: "「願你如你的故事，精彩繽紛。」" 
+      },
+      gate_04: { 
+        id: "4",
+        keys: ["把我的心勾走了", "心勾走了", "其他人不好說", "卡片4", "第四張", "4"], 
+        poem: "「願你如長途漂泊的旅客，帶著豐富的見聞與我們相會。」" 
+      }
     };
 
-    // 安全的圖檔名稱（加上相容備援）
-    const IMG_A = "./2018071274216625.jpg";
-    const IMG_B = "./images.jpeg";
-    const IMG_C = "./22_%E5%B7%A5%E4%BD%9C%E5%8D%80%E5%9F%9F-1-%E8%A4%87%E6%9C%AC-2.jpg";
-    const IMG_D = "./F5T0WD-bwAAhhQW.jpg";
-
+    // --- STAGE 0: 時間選擇 ---
     let within3Clicks = 0;
     function clickWithin3() {
       within3Clicks++;
@@ -266,6 +269,7 @@
       }, 1800);
     }
 
+    // --- STAGE 1: 倒數計時 ---
     function startCountdown() {
       let sec = 3;
       const timerEl = document.getElementById('timer');
@@ -281,13 +285,14 @@
       }, 1000);
     }
 
+    // --- STAGE 2: 惡搞問答區 ---
     let currentQuizIndex = 0;
     let quizFailCount = 0;
 
     const QUIZ_DATA = [
       {
         title: "Q1: 請問班導以前的綽號是什麼？",
-        hasGrid: false,
+        img: null,
         options: [
           { text: "A. 香蕉哥哥", msg: "香蕉哥哥？！你把班導當兒童台主持人喔！🫵", correct: false },
           { text: "B. 青蛙", msg: "答對了！恭喜記得班導的青蛙黑歷史！", correct: true },
@@ -297,17 +302,17 @@
       },
       {
         title: "Q2: 請問照片中哪一個才是「瘦辰」？",
-        hasGrid: true,
+        img: "photo2.jpg",
         options: [
-          { text: "A. 圖 A 的潮男", msg: "雖然很帥但這不是瘦辰好嗎！🫵", correct: false },
-          { text: "B. 圖 B 的水墨人物", msg: "那是古代文人，不是瘦辰好佳哉！(⁠・⁠∀⁠・⁠)", correct:  },
-          { text: "C. 圖 C 的美味炸雞", msg: "沒錯這就是炸雞", correct: true },
-          { text: "D. 圖 D 的「窩不知道」貓貓", msg: "欸不是，至少隨便亂點一個吧", correct: false }
+          { text: "A. 左上角那個", msg: "眼科關心您！左上角明明是背景牆/路人！🫵", correct: false },
+          { text: "B. 右上角那個", msg: "那是梗圖本尊，不是瘦辰好佳哉！(⁠・⁠∀⁠・⁠)", correct: false },
+          { text: "C. 左下角那個", msg: "眼神犀利！沒錯就是他！", correct: true },
+          { text: "D. 都不是，這是新物種", msg: "雖然長得很抽象，但真的是瘦辰好嗎！", correct: false }
         ]
       },
       {
         title: "Q3: 請問「我是誰」？",
-        hasGrid: false,
+        img: null,
         options: [
           { text: "A. 變態", msg: "才不是！你才變態！🫵", correct: false },
           { text: "B. 大變態", msg: "越說越過份了是不是！(⁠・⁠∀⁠・⁠)", correct: false },
@@ -318,34 +323,20 @@
     ];
 
     function loadQuiz(index) {
-      try {
-        currentQuizIndex = index;
-        quizFailCount = 0;
-        const q = QUIZ_DATA[index];
-        const fb = document.getElementById('quizFeedback');
-        if(fb) fb.innerText = "";
+      currentQuizIndex = index;
+      quizFailCount = 0;
+      const q = QUIZ_DATA[index];
+      const fb = document.getElementById('quizFeedback');
+      fb.innerText = "";
 
-        let html = `<h4 style="margin-bottom:15px;">${q.title}</h4>`;
-        
-        if(q.hasGrid) {
-          html += `
-            <div class="quiz-grid">
-              <div class="grid-item"><span class="grid-label">A</span><img src="${IMG_A}" alt="A" onerror="this.onerror=null;this.parentElement.innerHTML='<div style=\'padding:30px 0;color:#38bdf8;\'>圖 A</div>';"></div>
-              <div class="grid-item"><span class="grid-label">B</span><img src="${IMG_B}" alt="B" onerror="this.onerror=null;this.parentElement.innerHTML='<div style=\'padding:30px 0;color:#38bdf8;\'>圖 B</div>';"></div>
-              <div class="grid-item"><span class="grid-label">C</span><img src="${IMG_C}" alt="C" onerror="this.onerror=null;this.parentElement.innerHTML='<div style=\'padding:30px 0;color:#38bdf8;\'>圖 C</div>';"></div>
-              <div class="grid-item"><span class="grid-label">D</span><img src="${IMG_D}" alt="D" onerror="this.onerror=null;this.parentElement.innerHTML='<div style=\'padding:30px 0;color:#38bdf8;\'>圖 D</div>';"></div>
-            </div>
-          `;
-        }
-        
-        q.options.forEach((opt, optIdx) => {
-          html += `<button class="btn" onclick="answerQuiz(${optIdx})">${opt.text}</button>`;
-        });
+      let html = `<h4>${q.title}</h4>`;
+      if(q.img) html += `<img src="${q.img}" class="quiz-img" alt="Quiz Image">`;
+      
+      q.options.forEach((opt, optIdx) => {
+        html += `<button class="btn" onclick="answerQuiz(${optIdx})">${opt.text}</button>`;
+      });
 
-        document.getElementById('quizContent').innerHTML = html;
-      } catch (e) {
-        console.error(e);
-      }
+      document.getElementById('quizContent').innerHTML = html;
     }
 
     function answerQuiz(optIdx) {
@@ -353,7 +344,7 @@
       const selected = q.options[optIdx];
       const fb = document.getElementById('quizFeedback');
 
-      if(currentQuizIndex === 2） {
+      if(currentQuizIndex === 2) {
         quizFailCount++;
         if(quizFailCount >= 3) {
           fb.style.color = "#f472b6";
@@ -385,6 +376,7 @@
       }
     }
 
+    // --- STAGE 3: 實體密碼驗證 (錯 3 次啟動題目判定救濟) ---
     let finalFailCount = 0;
     let isRescueMode = false;
 
@@ -393,8 +385,11 @@
       const val = inputEl.value.trim().toLowerCase();
       const fb = document.getElementById('finalFeedback');
 
+      // 如果已經在保底救援模式
       if (isRescueMode) {
         let matchedPoem = null;
+        
+        // 匹配卡片關鍵字或數字 (1~4)
         for(let key in VAULT_KEYS) {
           if(VAULT_KEYS[key].keys.some(k => val.includes(k.toLowerCase())) || val.includes(VAULT_KEYS[key].id)) {
             matchedPoem = VAULT_KEYS[key].poem;
@@ -412,6 +407,7 @@
         return;
       }
 
+      // 一般對答案模式
       let matched = null;
       for(let key in VAULT_KEYS) {
         if(VAULT_KEYS[key].keys.some(k => val.includes(k.toLowerCase()))) {
@@ -427,9 +423,11 @@
         if(finalFailCount < 3) {
           fb.innerText = "解答錯誤！算什麼算！答案根本不在公式裡！";
         } else {
+          // 觸發拯救模式
           isRescueMode = true;
           fb.style.color = "#38bdf8";
           fb.innerHTML = "🚨 <strong>智商救濟機制啟動！</strong><br>算了一看就知道你沒算出來！<br>請在上方輸入框輸入<strong>「你的卡片編號 (1~4)」</strong>或<strong>「題目第一句/關鍵字」</strong>領取專屬寄語：";
+          
           document.getElementById('passcodePrompt').innerText = "請輸入你的卡片編號 (1-4) 或題目關鍵字：";
           inputEl.value = "";
           inputEl.placeholder = "例如：1 或 算錯的時候...";
@@ -444,6 +442,7 @@
       document.getElementById('poemDisplay').innerText = poemText;
     }
 
+    // --- STAGE 4: 膠囊送出與 DC 閃爍彈窗 ---
     function submitCapsule() {
       const name = document.getElementById('nicknameInput').value.trim();
       const msg = document.getElementById('capsuleInput').value.trim();
