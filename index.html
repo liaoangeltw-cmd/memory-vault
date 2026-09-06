@@ -41,7 +41,7 @@
 
     .hidden { display: none !important; }
 
-    /* 按鈕樣式 */
+    /* 按鈕基礎樣式 */
     .btn {
       width: 100%;
       padding: 12px;
@@ -53,10 +53,24 @@
       font-size: 1rem;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: background 0.2s, transform 0.3s ease;
+      position: relative;
     }
     .btn:hover { background: var(--accent-blue); color: #0f172a; }
     .btn-accent { background: var(--accent-blue); color: #0f172a; }
+
+    /* 「三年內」按鈕掉落動畫階梯 */
+    .drop-stage-1 {
+      transform: translateY(15px) rotate(5deg) !important;
+    }
+    .drop-stage-2 {
+      transform: translateY(35px) rotate(-12deg) !important;
+    }
+    .drop-stage-3 {
+      transform: translateY(200px) rotate(45deg) !important;
+      opacity: 0;
+      pointer-events: none;
+    }
 
     /* 輸入框 */
     input[type="text"], textarea {
@@ -140,7 +154,7 @@
     <div id="stage0">
       <h2>MEMORY VAULT // 進入座標</h2>
       <p>請選擇你目前的時空狀態：</p>
-      <button class="btn" onclick="selectTimeMode('within3')">【 三年內 】</button>
+      <button class="btn" id="within3Btn" onclick="clickWithin3()">【 三年內 】</button>
       <button class="btn" onclick="selectTimeMode('after3')">【 三年後 】</button>
       <div id="modeFeedback" class="feedback"></div>
     </div>
@@ -162,7 +176,7 @@
     <!-- STAGE 3: 實體卡片終極密碼 -->
     <div id="stage3" class="hidden">
       <h3>🔑 終極金鑰解密</h3>
-      <p>請輸入你實體卡片上的謎題答案：</p>
+      <p>請輸入你實體卡片上的謎題解答：</p>
       <input type="text" id="finalPasscode" placeholder="請輸入解答..." autocomplete="off">
       <button class="btn btn-accent" onclick="verifyFinalPasscode()">驗證解密</button>
       <div class="feedback" id="finalFeedback"></div>
@@ -177,7 +191,7 @@
 
       <h4>📜 時光膠囊登錄</h4>
       <input type="text" id="nicknameInput" placeholder="請輸入你的暱稱/代號">
-      <textarea id="capsuleInput" rows="3" placeholder="寫下一段話給後面解鎖的姐妹..."></textarea>
+      <textarea id="capsuleInput" rows="3" placeholder="寫下一段話給後面解鎖的人..."></textarea>
       <button class="btn btn-accent" onclick="submitCapsule()">封存留言並送出</button>
     </div>
 
@@ -188,7 +202,7 @@
     <div class="modal-content">
       <h2 style="color: var(--accent-pink);">⚡ ACCESS GRANTED</h2>
       <p>恭喜歸隊！點擊下方按鈕加入專屬討論區，看看大家都在裡面吐槽什麼：</p>
-      <a href="https://discord.gg/your_dc_code" target="_blank" style="text-decoration: none;">
+      <a href="https://discord.gg/x3H7e6mD2" target="_blank" style="text-decoration: none;">
         <button class="btn btn-accent" style="margin-top: 15px;">👾 進入 Discord 秘密頻道</button>
       </a>
     </div>
@@ -203,14 +217,35 @@
       gate_04: { keys: ["把我的心勾走了", "心勾走了", "其他人不好說"], poem: "「願你如長途漂泊的旅客，帶著豐富的見聞與我們相會。」" }
     };
 
-    // --- STAGE 0: 時間選擇 ---
+    // --- STAGE 0: 時間選擇 (三年內點擊 3 次掉落效果) ---
+    let within3Clicks = 0;
+    function clickWithin3() {
+      within3Clicks++;
+      const btn = document.getElementById('within3Btn');
+      const fb = document.getElementById('modeFeedback');
+
+      if (within3Clicks === 1) {
+        btn.classList.add('drop-stage-1');
+        fb.innerText = "按鈕好像鬆動了...才過多久就忍不住點進來？🫵";
+      } else if (within3Clicks === 2) {
+        btn.classList.remove('drop-stage-1');
+        btn.classList.add('drop-stage-2');
+        fb.innerText = "再點要掉下去了喔！是有多迫不及待啦！(⁠・⁠∀⁠・⁠)";
+      } else if (within3Clicks >= 3) {
+        btn.classList.remove('drop-stage-2');
+        btn.classList.add('drop-stage-3');
+        fb.innerText = "散了散了！按鈕壞掉了，直接進入系統啦！💥";
+        setTimeout(() => {
+          document.getElementById('stage0').classList.add('hidden');
+          document.getElementById('stage1').classList.remove('hidden');
+          startCountdown();
+        }, 1200);
+      }
+    }
+
     function selectTimeMode(mode) {
       const fb = document.getElementById('modeFeedback');
-      if(mode === 'within3') {
-        fb.innerText = "才過多久就忍不住點進來？你是有多迫不及待？🫵";
-      } else {
-        fb.innerText = "暴力破解是不是？少那邊裝老，時間根本還沒到好嗎！(⁠・⁠∀⁠・⁠)";
-      }
+      fb.innerText = "暴力破解是不是？少那邊裝老，時間根本還沒到好嗎！(⁠・⁠∀⁠・⁠)";
       setTimeout(() => {
         document.getElementById('stage0').classList.add('hidden');
         document.getElementById('stage1').classList.remove('hidden');
@@ -253,7 +288,7 @@
       // Q2: 瘦辰辨識
       {
         title: "Q2: 請問照片中哪一個才是「瘦辰」？",
-        img: "photo2.jpg", // 可貼上圖片檔名
+        img: "photo2.jpg",
         options: [
           { text: "A. 左上角那個", msg: "眼科關心您！左上角明明是背景牆/路人！🫵", correct: false },
           { text: "B. 右上角那個", msg: "那是梗圖本尊，不是瘦辰好佳哉！(⁠・⁠∀⁠・⁠)", correct: false },
@@ -261,7 +296,7 @@
           { text: "D. 都不是，這是新物種", msg: "雖然長得很抽象，但真的是瘦辰好嗎！", correct: false }
         ]
       },
-      // Q3: 我是誰 (全錯 + 3次暴怒)
+      // Q3: 我是誰 (全錯，不顯示任何次數提示，錯 3 次暴怒通關)
       {
         title: "Q3: 請問「我是誰」？",
         img: null,
@@ -296,7 +331,7 @@
       const selected = q.options[optIdx];
       const fb = document.getElementById('quizFeedback');
 
-      // 第三題特殊邏輯：全錯，錯 3 次暴怒通關
+      // 第三題特殊邏輯：全錯，不顯示任何次數，錯 3 次暴怒通關
       if(currentQuizIndex === 2) {
         quizFailCount++;
         if(quizFailCount >= 3) {
@@ -307,7 +342,7 @@
             document.getElementById('stage3').classList.remove('hidden');
           }, 2000);
         } else {
-          fb.innerText = `${selected.msg} (失敗 ${quizFailCount}/3 次)`;
+          fb.innerText = selected.msg;
         }
         return;
       }
@@ -330,7 +365,7 @@
       }
     }
 
-    // --- STAGE 3: 實體密碼驗證 (錯 3 次保底) ---
+    // --- STAGE 3: 實體密碼驗證 ---
     let finalFailCount = 0;
     function verifyFinalPasscode() {
       const val = document.getElementById('finalPasscode').value.trim().toLowerCase();
@@ -349,7 +384,7 @@
       } else {
         finalFailCount++;
         if(finalFailCount < 3) {
-          fb.innerText = `解答錯誤！算什麼算！答案根本不在公式裡！(${finalFailCount}/3 次)`;
+          fb.innerText = "解答錯誤！算什麼算！答案根本不在公式裡！";
         } else {
           fb.style.color = "#38bdf8";
           fb.innerHTML = "🚨 <strong>智商救濟機制啟動！</strong><br>算了看你可憐，答案是：<br><span style='color:#f472b6'>「其他人不好說，但你已經把我的心勾走了」</span><br>2 秒後自動為你解鎖...";
