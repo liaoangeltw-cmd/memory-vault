@@ -259,14 +259,10 @@
       }
     }
 
+    // 點擊【三年後】僅顯示提示文字，不切換、不觸發倒數
     function selectTimeMode(mode) {
       const fb = document.getElementById('modeFeedback');
       fb.innerText = "暴力破解是不是？少那邊裝老，時間根本還沒到好嗎！(⁠・⁠∀⁠・⁠)";
-      setTimeout(() => {
-        document.getElementById('stage0').classList.add('hidden');
-        document.getElementById('stage1').classList.remove('hidden');
-        startCountdown();
-      }, 1800);
     }
 
     // --- STAGE 1: 倒數計時 ---
