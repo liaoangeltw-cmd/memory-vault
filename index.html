@@ -92,13 +92,6 @@
       margin: 15px 0;
     }
 
-    /* 單張圖片容器 */
-    .quiz-img {
-      max-width: 100%;
-      border-radius: 8px;
-      margin-bottom: 12px;
-    }
-
     /* 4 格圖片網格 */
     .quiz-grid {
       display: grid;
@@ -312,16 +305,16 @@
       },
       {
         title: "Q2: 請問照片中哪一個才是瘦辰？",
-        // 順序：左上(藍衣大哥)、右上(水墨詩人)、左下(炸雞)、右下(窩不知道)
+        // 4 張 Google Drive 直連圖片網址
         gridImgs: [
-          "藍衣大哥網址.jpg",
-          "水墨詩人網址.jpg",
-          "炸雞網址.jpg",
-          "窩不知道網址.jpg"
+          "https://lh3.googleusercontent.com/d/1zTZPvjQz28bh_Le4Z71X00kvJVs_0Ga2", // 左上：藍衣大哥
+          "https://lh3.googleusercontent.com/d/1JKKZqnhiVDxAWAV0CZ35kELlI9k2ewOE", // 右上：水墨詩人
+          "https://lh3.googleusercontent.com/d/1rNmm5QpcjB1NDifdFBGEquAkhxtQG6rs", // 左下：炸雞
+          "https://lh3.googleusercontent.com/d/1vEh-HMODh5SBPq8hHiQAUK5qoiNruOa7"  // 右下：窩不知道
         ],
         options: [
           { text: "A. 左上角那個", msg: "眼科關心您的視力，請盡快就診", correct: false },
-          { text: "B. 右上角那個", msg: "沒這麼老吧！", correct: false },
+          { text: "B. 右上角那個", msg: "那是梗圖！(⁠・⁠∀⁠・⁠)", correct: false },
           { text: "C. 左下角那個", msg: "炸雞！沒錯就是他！", correct: true },
           { text: "D. 都不是，這是新物種", msg: "隨便選一個都比較好吧！", correct: false }
         ]
@@ -347,7 +340,6 @@
 
       let html = `<h4>${q.title}</h4>`;
       
-      // 如果有 4 格圖片陣列，渲染成 2x2 網格
       if (q.gridImgs && q.gridImgs.length === 4) {
         html += `
           <div class="quiz-grid">
@@ -403,11 +395,10 @@
       }
     }
 
-    // --- STAGE 3: 實體密碼驗證 (錯 3 次啟動題目判定救濟) ---
+    // --- STAGE 3: 實體密碼驗證 ---
     let finalFailCount = 0;
     let isRescueMode = false;
 
-    // 鍵盤 Enter 鍵支援
     document.getElementById('finalPasscode').addEventListener('keypress', function (e) {
       if (e.key === 'Enter') {
         verifyFinalPasscode();
