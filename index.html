@@ -218,25 +218,26 @@
 
   <script>
     // --- 密碼與詩句庫 ---
+    // 一般模式下只能對照 keys，救濟模式（錯3次）才能對照 id
     const VAULT_KEYS = {
       gate_01: { 
         id: "1",
-        keys: ["16", "卡片1", "第一張", "1"], 
+        keys: ["16", "卡片1", "第一張"], 
         poem: "「願你如高天之上的候鳥，與光同在。」" 
       },
       gate_02: { 
         id: "2",
-        keys: ["算錯的時候", "算錯", "卡片2", "第二張", "2"], 
+        keys: ["算錯的時候", "算錯", "卡片2", "第二張"], 
         poem: "「願你如暴雪後的寒梅，終得陽光。」" 
       },
       gate_03: { 
         id: "3",
-        keys: ["我也不記得", "不記得", "數不勝數", "太多了", "卡片3", "第三張", "3"], 
+        keys: ["我也不記得", "不記得", "數不勝數", "太多了", "卡片3", "第三張"], 
         poem: "「願你如你的故事，精彩繽紛。」" 
       },
       gate_04: { 
         id: "4",
-        keys: ["把我的心勾走了", "心勾走了", "其他人不好說", "卡片4", "第四張", "4"], 
+        keys: ["把我的心勾走了", "心勾走了", "其他人不好說", "卡片4", "第四張"], 
         poem: "「願你如長途漂泊的旅客，帶著豐富的見聞與我們相會。」" 
       }
     };
@@ -305,7 +306,6 @@
       },
       {
         title: "Q2: 請問照片中哪一個才是瘦辰？",
-        // 4 張 Google Drive 直連圖片網址
         gridImgs: [
           "https://lh3.googleusercontent.com/d/1zTZPvjQz28bh_Le4Z71X00kvJVs_0Ga2", // 左上：藍衣大哥
           "https://lh3.googleusercontent.com/d/1JKKZqnhiVDxAWAV0CZ35kELlI9k2ewOE", // 右上：水墨詩人
@@ -395,7 +395,7 @@
       }
     }
 
-    // --- STAGE 3: 實體密碼驗證 ---
+    // --- STAGE 3: 實體密碼驗證 (一般模式/救濟模式分流) ---
     let finalFailCount = 0;
     let isRescueMode = false;
 
@@ -410,11 +410,13 @@
       const val = inputEl.value.trim().toLowerCase();
       const fb = document.getElementById('finalFeedback');
 
+      // 1. 救濟模式：錯滿 3 次後啟動，支援輸入卡片號碼 (1~4) 或題目關鍵字
       if (isRescueMode) {
         let matchedPoem = null;
         for(let key in VAULT_KEYS) {
-          if(VAULT_KEYS[key].keys.some(k => val.includes(k.toLowerCase())) || val.includes(VAULT_KEYS[key].id)) {
-            matchedPoem = VAULT_KEYS[key].poem;
+          const item = VAULT_KEYS[key];
+          if(val === item.id || item.keys.some(k => val.includes(k.toLowerCase()))) {
+            matchedPoem = item.poem;
             break;
           }
         }
@@ -422,13 +424,15 @@
         if(matchedPoem) {
           fb.style.color = "#38bdf8";
           fb.innerText = "辨識成功！";
-          setTimeout(() => unlockVault(matchedPoem), 1500);
+          setTimeout(() => unlockVault(matchedPoem), 1200);
         } else {
+          fb.style.color = "#f87171";
           fb.innerText = "無法辨識卡片！請輸入卡片編號（1、2、3、4）或題目關鍵字！";
         }
         return;
       }
 
+      // 2. 一般模式：前三次必須精準輸入謎題解答
       let matched = null;
       for(let key in VAULT_KEYS) {
         if(VAULT_KEYS[key].keys.some(k => val.includes(k.toLowerCase()))) {
@@ -442,16 +446,18 @@
       } else {
         finalFailCount++;
         if(finalFailCount < 3) {
+          fb.style.color = "#f87171";
           fb.innerText = "解答錯誤！算什麼算！答案根本不在公式裡！";
         } else {
+          // 錯滿 3 次啟動智商救濟
           isRescueMode = true;
           fb.style.color = "#38bdf8";
-          fb.innerHTML = "🚨 <strong>智商救濟機制啟動！</strong><br>算了一看就知道你沒算出來！<br>請在上方輸入框輸入<strong>「你的卡片編號 (1~4)」</strong>或<strong>「題目第一句/關鍵字」：";
+          fb.innerHTML = "🚨 <strong>智商救濟機制啟動！</strong><br>算了一看就知道你沒算出來！<br>請在上方輸入框輸入<strong>「你的卡片編號 (1~4)」</strong>或<strong>「題目第一句/關鍵字」</strong>：";
           
           document.getElementById('passcodePrompt').innerText = "請輸入你的卡片編號 (1-4) 或題目關鍵字：";
           inputEl.value = "";
           inputEl.placeholder = "例如：1 或 算錯的時候...";
-          document.getElementById('verifyBtn').innerText = "領取你的專屬寄語，不要去點別人的喔";
+          document.getElementById('verifyBtn').innerText = "領取你的專屬寄語";
         }
       }
     }
