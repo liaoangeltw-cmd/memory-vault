@@ -184,7 +184,7 @@
 
     <!-- STAGE 4: 排行榜登錄 & 文學扉頁 & 時光膠囊 -->
     <div id="stage4" class="hidden">
-      <h3>✨ 歸隊解鎖成功 ✨</h3>
+      <h3>✨ 解鎖成功 ✨</h3>
       <div class="poem-box" id="poemDisplay"></div>
 
       <hr style="border-color: #334155; margin: 20px 0;">
@@ -246,11 +246,11 @@
       } else if (within3Clicks === 2) {
         btn.classList.remove('drop-stage-1');
         btn.classList.add('drop-stage-2');
-        fb.innerText = "再點要掉下去了喔！是有多迫不及待啦！(⁠・⁠∀⁠・⁠)";
+        fb.innerText = "再點要掉下去了喔！是有多迫不及待啦！";
       } else if (within3Clicks >= 3) {
         btn.classList.remove('drop-stage-2');
         btn.classList.add('drop-stage-3');
-        fb.innerText = "散了散了！按鈕壞掉了，直接進入系統啦！💥";
+        fb.innerText = "喂！按鈕壞掉了啦！💥";
         setTimeout(() => {
           document.getElementById('stage0').classList.add('hidden');
           document.getElementById('stage1').classList.remove('hidden');
@@ -262,7 +262,7 @@
     // 點擊【三年後】僅顯示提示文字，不切換、不觸發倒數
     function selectTimeMode(mode) {
       const fb = document.getElementById('modeFeedback');
-      fb.innerText = "暴力破解是不是？少那邊裝老，時間根本還沒到好嗎！(⁠・⁠∀⁠・⁠)";
+      fb.innerText = "少那邊裝，時間根本還沒到好嗎！給我乖乖等三年啦";
     }
 
     // --- STAGE 1: 倒數計時 ---
@@ -287,33 +287,33 @@
 
     const QUIZ_DATA = [
       {
-        title: "Q1: 請問班導以前的綽號是什麼？",
+        title: "Q1: 請問永德以前的綽號是什麼？",
         img: null,
         options: [
-          { text: "A. 香蕉哥哥", msg: "香蕉哥哥？！你把班導當兒童台主持人喔！🫵", correct: false },
-          { text: "B. 青蛙", msg: "答對了！恭喜記得班導的青蛙黑歷史！", correct: true },
-          { text: "C. 兄弟你好香啊", msg: "不要把你的男同迷因套在班導身上好嗎！(⁠・⁠∀⁠・⁠)", correct: false },
-          { text: "D. jojo 我不當人了！", msg: "班導戴了石鬼面是不是？JOJO 梗看太多了啦！", correct: false }
+          { text: "A. 香蕉哥哥", msg: "香蕉哥哥？你認真？", correct: false },
+          { text: "B. 青蛙", msg: "答對了！真虧你還記得", correct: true },
+          { text: "C. 兄弟你好香啊", msg: "讓我看看！", correct: false },
+          { text: "D. jojo 我不當人了！", msg: "就知道某人一定會點", correct: false }
         ]
       },
       {
-        title: "Q2: 請問照片中哪一個才是「瘦辰」？",
+        title: "Q2: 請問照片中哪一個才是瘦辰？",
         img: "photo2.jpg",
         options: [
-          { text: "A. 左上角那個", msg: "眼科關心您！左上角明明是背景牆/路人！🫵", correct: false },
-          { text: "B. 右上角那個", msg: "那是梗圖本尊，不是瘦辰好佳哉！(⁠・⁠∀⁠・⁠)", correct: false },
-          { text: "C. 左下角那個", msg: "眼神犀利！沒錯就是他！", correct: true },
-          { text: "D. 都不是，這是新物種", msg: "雖然長得很抽象，但真的是瘦辰好嗎！", correct: false }
+          { text: "A. 左上角那個", msg: "眼科關心您的視力，請盡快就診", correct: false },
+          { text: "B. 右上角那個", msg: "那是梗圖！(⁠・⁠∀⁠・⁠)", correct: false },
+          { text: "C. 左下角那個", msg: "炸雞！沒錯就是他！", correct: true },
+          { text: "D. 都不是，這是新物種", msg: "隨便選一個都比較好吧！", correct: false }
         ]
       },
       {
-        title: "Q3: 請問「我是誰」？",
+        title: "Q3: 請問我是誰？",
         img: null,
         options: [
           { text: "A. 變態", msg: "才不是！你才變態！🫵", correct: false },
-          { text: "B. 大變態", msg: "越說越過份了是不是！(⁠・⁠∀⁠・⁠)", correct: false },
-          { text: "C. 超級大變態", msg: "直接開大招攻擊我是怎樣啦！", correct: false },
-          { text: "D. 以上皆是", msg: "想一網打盡？門都沒有！", correct: false }
+          { text: "B. 大變態", msg: "越說越過份了是不是！", correct: false },
+          { text: "C. 超級大變態", msg: "是怎樣啦！", correct: false },
+          { text: "D. 以上皆是", msg: "怎麼想都不是這個吧！", correct: false }
         ]
       }
     ];
@@ -395,7 +395,7 @@
 
         if(matchedPoem) {
           fb.style.color = "#38bdf8";
-          fb.innerText = "辨識成功！正在為你檢索專屬記憶與寄語...";
+          fb.innerText = "辨識成功！";
           setTimeout(() => unlockVault(matchedPoem), 1500);
         } else {
           fb.innerText = "無法辨識卡片！請輸入卡片編號（1、2、3、4）或題目關鍵字！";
@@ -422,12 +422,12 @@
           // 觸發拯救模式
           isRescueMode = true;
           fb.style.color = "#38bdf8";
-          fb.innerHTML = "🚨 <strong>智商救濟機制啟動！</strong><br>算了一看就知道你沒算出來！<br>請在上方輸入框輸入<strong>「你的卡片編號 (1~4)」</strong>或<strong>「題目第一句/關鍵字」</strong>領取專屬寄語：";
+          fb.innerHTML = "🚨 <strong>智商救濟機制啟動！</strong><br>算了一看就知道你沒算出來！<br>請在上方輸入框輸入<strong>「你的卡片編號 (1~4)」</strong>或<strong>「題目第一句/關鍵字」：";
           
           document.getElementById('passcodePrompt').innerText = "請輸入你的卡片編號 (1-4) 或題目關鍵字：";
           inputEl.value = "";
           inputEl.placeholder = "例如：1 或 算錯的時候...";
-          document.getElementById('verifyBtn').innerText = "領取專屬寄語";
+          document.getElementById('verifyBtn').innerText = "領取你的專屬寄語，不要去點別人的喔";
         }
       }
     }
