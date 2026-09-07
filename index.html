@@ -92,11 +92,26 @@
       margin: 15px 0;
     }
 
-    /* 圖片容器 */
+    /* 單張圖片容器 */
     .quiz-img {
       max-width: 100%;
       border-radius: 8px;
       margin-bottom: 12px;
+    }
+
+    /* 4 格圖片網格 */
+    .quiz-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .quiz-grid img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid #334155;
     }
 
     .feedback {
@@ -209,7 +224,7 @@
   </div>
 
   <script>
-    // --- 密碼與詩句庫（新增卡片號碼與卡片特徵識別） ---
+    // --- 密碼與詩句庫 ---
     const VAULT_KEYS = {
       gate_01: { 
         id: "1",
@@ -259,7 +274,6 @@
       }
     }
 
-    // 點擊【三年後】僅顯示提示文字，不切換、不觸發倒數
     function selectTimeMode(mode) {
       const fb = document.getElementById('modeFeedback');
       fb.innerText = "少那邊裝，時間根本還沒到好嗎！給我乖乖等三年啦";
@@ -288,7 +302,7 @@
     const QUIZ_DATA = [
       {
         title: "Q1: 請問永德以前的綽號是什麼？",
-        img: null,
+        gridImgs: null,
         options: [
           { text: "A. 香蕉哥哥", msg: "香蕉哥哥？你認真？", correct: false },
           { text: "B. 青蛙", msg: "答對了！真虧你還記得", correct: true },
@@ -298,17 +312,23 @@
       },
       {
         title: "Q2: 請問照片中哪一個才是瘦辰？",
-        img: "photo2.jpg",
+        // 順序：左上(藍衣大哥)、右上(水墨詩人)、左下(炸雞)、右下(窩不知道)
+        gridImgs: [
+          "藍衣大哥網址.jpg",
+          "水墨詩人網址.jpg",
+          "炸雞網址.jpg",
+          "窩不知道網址.jpg"
+        ],
         options: [
           { text: "A. 左上角那個", msg: "眼科關心您的視力，請盡快就診", correct: false },
-          { text: "B. 右上角那個", msg: "那是梗圖！(⁠・⁠∀⁠・⁠)", correct: false },
+          { text: "B. 右上角那個", msg: "沒這麼老吧！", correct: false },
           { text: "C. 左下角那個", msg: "炸雞！沒錯就是他！", correct: true },
           { text: "D. 都不是，這是新物種", msg: "隨便選一個都比較好吧！", correct: false }
         ]
       },
       {
         title: "Q3: 請問我是誰？",
-        img: null,
+        gridImgs: null,
         options: [
           { text: "A. 變態", msg: "才不是！你才變態！🫵", correct: false },
           { text: "B. 大變態", msg: "越說越過份了是不是！", correct: false },
@@ -326,8 +346,19 @@
       fb.innerText = "";
 
       let html = `<h4>${q.title}</h4>`;
-      if(q.img) html += `<img src="${q.img}" class="quiz-img" alt="Quiz Image">`;
       
+      // 如果有 4 格圖片陣列，渲染成 2x2 網格
+      if (q.gridImgs && q.gridImgs.length === 4) {
+        html += `
+          <div class="quiz-grid">
+            <img src="${q.gridImgs[0]}" alt="左上">
+            <img src="${q.gridImgs[1]}" alt="右上">
+            <img src="${q.gridImgs[2]}" alt="左下">
+            <img src="${q.gridImgs[3]}" alt="右下">
+          </div>
+        `;
+      }
+
       q.options.forEach((opt, optIdx) => {
         html += `<button class="btn" onclick="answerQuiz(${optIdx})">${opt.text}</button>`;
       });
@@ -376,16 +407,20 @@
     let finalFailCount = 0;
     let isRescueMode = false;
 
+    // 鍵盤 Enter 鍵支援
+    document.getElementById('finalPasscode').addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        verifyFinalPasscode();
+      }
+    });
+
     function verifyFinalPasscode() {
       const inputEl = document.getElementById('finalPasscode');
       const val = inputEl.value.trim().toLowerCase();
       const fb = document.getElementById('finalFeedback');
 
-      // 如果已經在保底救援模式
       if (isRescueMode) {
         let matchedPoem = null;
-        
-        // 匹配卡片關鍵字或數字 (1~4)
         for(let key in VAULT_KEYS) {
           if(VAULT_KEYS[key].keys.some(k => val.includes(k.toLowerCase())) || val.includes(VAULT_KEYS[key].id)) {
             matchedPoem = VAULT_KEYS[key].poem;
@@ -403,7 +438,6 @@
         return;
       }
 
-      // 一般對答案模式
       let matched = null;
       for(let key in VAULT_KEYS) {
         if(VAULT_KEYS[key].keys.some(k => val.includes(k.toLowerCase()))) {
@@ -419,7 +453,6 @@
         if(finalFailCount < 3) {
           fb.innerText = "解答錯誤！算什麼算！答案根本不在公式裡！";
         } else {
-          // 觸發拯救模式
           isRescueMode = true;
           fb.style.color = "#38bdf8";
           fb.innerHTML = "🚨 <strong>智商救濟機制啟動！</strong><br>算了一看就知道你沒算出來！<br>請在上方輸入框輸入<strong>「你的卡片編號 (1~4)」</strong>或<strong>「題目第一句/關鍵字」：";
